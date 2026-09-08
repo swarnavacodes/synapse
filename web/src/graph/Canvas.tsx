@@ -215,7 +215,7 @@ function GraphToolbar({ concepts }: { concepts: ReturnType<typeof useGraphStore.
     }
     void savePositions(nextPositions);
     requestAnimationFrame(() => fitView({ padding: 0.2, duration: 450 }));
-  }, [concepts, fitView, relationships, savePositions, updatePosition]);
+  }, [concepts, relationships, fitView, savePositions, updatePosition]);
 
   return (
     <div className="graph-toolbar">
