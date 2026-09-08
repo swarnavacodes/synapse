@@ -1,5 +1,5 @@
 import { BaseEdge, EdgeLabelRenderer, type EdgeProps } from "@xyflow/react";
-import type { Relationship, RelationshipKind, RelationshipType } from "@thinking-explorer/shared";
+import type { Relationship, RelationshipKind, RelationshipStyle, RelationshipType } from "@thinking-explorer/shared";
 
 interface RelEdgeData {
   rel: Relationship;
@@ -24,6 +24,17 @@ const KIND_DASH: Record<RelationshipKind, string | undefined> = {
   analogy: "2 4",
 };
 
+const STYLE_PATH: Record<RelationshipStyle, (sx: number, sy: number, tx: number, ty: number) => string> = {
+  curve: (sx, sy, tx, ty) => {
+    const dx = tx - sx;
+    const dy = ty - sy;
+    const dr = Math.hypot(dx, dy) * 0.6;
+    return `M${sx},${sy} A${dr},${dr} 0 0,1 ${tx},${ty}`;
+  },
+  straight: (sx, sy, tx, ty) => `M${sx},${sy} L${tx},${ty}`,
+  step: (sx, sy, tx, ty) => `M${sx},${sy} L${tx},${sy} L${tx},${ty}`,
+};
+
 export function RelationshipEdge({
   id,
   sourceX,
@@ -41,12 +52,7 @@ export function RelationshipEdge({
   const baseWidth = 1 + 2 * rel.strength;
   const width = selected ? baseWidth + 1 : baseWidth;
 
-  const edgePath = (sx: number, sy: number, tx: number, ty: number) => {
-    const dx = tx - sx;
-    const dy = ty - sy;
-    const dr = Math.hypot(dx, dy) * 0.6;
-    return `M${sx},${sy} A${dr},${dr} 0 0,1 ${tx},${ty}`;
-  };
+  const edgePath = STYLE_PATH[rel.style ?? "curve"];
 
   const midX = (sourceX + targetX) / 2;
   const midY = (sourceY + targetY) / 2;

@@ -22,6 +22,13 @@ export type RelationshipKind = z.infer<typeof RelationshipKindSchema>;
 export const RelationshipOriginSchema = z.enum(["user", "llm", "derived"]);
 export type RelationshipOrigin = z.infer<typeof RelationshipOriginSchema>;
 
+export const RelationshipStyleSchema = z.enum([
+  "curve",
+  "straight",
+  "step",
+]);
+export type RelationshipStyle = z.infer<typeof RelationshipStyleSchema>;
+
 export const RelationshipSchema = z.object({
   id: z.string().min(1),
   sessionId: z.string().min(1),
@@ -29,6 +36,7 @@ export const RelationshipSchema = z.object({
   targetId: z.string().min(1),
   type: RelationshipTypeSchema,
   kind: RelationshipKindSchema,
+  style: RelationshipStyleSchema.optional().default("curve"),
   explanation: z.string().max(1000).optional().default(""),
   strength: z.number().min(0).max(1),
   origin: RelationshipOriginSchema,

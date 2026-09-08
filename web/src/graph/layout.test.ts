@@ -23,6 +23,7 @@ function dummyRel(sourceId: string, targetId: string): Relationship {
     targetId,
     type: "supports",
     kind: "fact",
+    style: "curve",
     explanation: "",
     strength: 0.5,
     origin: "user",

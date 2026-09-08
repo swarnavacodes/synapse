@@ -1,24 +1,30 @@
 import { create } from "zustand";
 import {
+  RelationshipStyleSchema,
   RelationshipTypeSchema,
   RelationshipKindSchema,
   type RelationshipType,
   type RelationshipKind,
+  type RelationshipStyle,
 } from "@thinking-explorer/shared";
 
 const ALL_TYPES: RelationshipType[] = RelationshipTypeSchema.options;
 const ALL_KINDS: RelationshipKind[] = RelationshipKindSchema.options;
+const ALL_STYLES: RelationshipStyle[] = RelationshipStyleSchema.options;
 
 export interface FilterState {
   hiddenCategories: Set<string>;
   hiddenTypes: Set<RelationshipType>;
   hiddenKinds: Set<RelationshipKind>;
+  hiddenStyles: Set<RelationshipStyle>;
   setHiddenCategories: (s: Set<string>) => void;
   setHiddenTypes: (s: Set<RelationshipType>) => void;
   setHiddenKinds: (s: Set<RelationshipKind>) => void;
+  setHiddenStyles: (s: Set<RelationshipStyle>) => void;
   toggleCategory: (cat: string) => void;
   toggleType: (t: RelationshipType) => void;
   toggleKind: (k: RelationshipKind) => void;
+  toggleStyle: (s: RelationshipStyle) => void;
   clearAll: () => void;
   hydrateFromSession: (sessionId: string) => void;
 }
@@ -51,6 +57,7 @@ export const useFilterStore = create<FilterState>((set, get) => ({
   hiddenCategories: new Set(),
   hiddenTypes: new Set(),
   hiddenKinds: new Set(),
+  hiddenStyles: new Set(),
   setHiddenCategories(s) {
     set({ hiddenCategories: s });
   },
@@ -59,6 +66,9 @@ export const useFilterStore = create<FilterState>((set, get) => ({
   },
   setHiddenKinds(s) {
     set({ hiddenKinds: s });
+  },
+  setHiddenStyles(s) {
+    set({ hiddenStyles: s });
   },
   toggleCategory(cat) {
     const next = new Set(get().hiddenCategories);
@@ -78,11 +88,18 @@ export const useFilterStore = create<FilterState>((set, get) => ({
     else next.add(k);
     set({ hiddenKinds: next });
   },
+  toggleStyle(s) {
+    const next = new Set(get().hiddenStyles);
+    if (next.has(s)) next.delete(s);
+    else next.add(s);
+    set({ hiddenStyles: next });
+  },
   clearAll() {
     set({
       hiddenCategories: new Set(),
       hiddenTypes: new Set(),
       hiddenKinds: new Set(),
+      hiddenStyles: new Set(),
     });
   },
   hydrateFromSession(sessionId) {
@@ -90,6 +107,7 @@ export const useFilterStore = create<FilterState>((set, get) => ({
       hiddenCategories: loadSet(`synapse:filter:cat:${sessionId}`),
       hiddenTypes: loadSet(`synapse:filter:type:${sessionId}`, ALL_TYPES),
       hiddenKinds: loadSet(`synapse:filter:kind:${sessionId}`, ALL_KINDS),
+      hiddenStyles: loadSet(`synapse:filter:style:${sessionId}`, ALL_STYLES),
     });
   },
 }));
@@ -98,4 +116,5 @@ export function persistFilterForSession(sessionId: string, state: FilterState) {
   saveSet(`synapse:filter:cat:${sessionId}`, state.hiddenCategories);
   saveSet(`synapse:filter:type:${sessionId}`, state.hiddenTypes as Set<string>);
   saveSet(`synapse:filter:kind:${sessionId}`, state.hiddenKinds as Set<string>);
+  saveSet(`synapse:filter:style:${sessionId}`, state.hiddenStyles as Set<string>);
 }

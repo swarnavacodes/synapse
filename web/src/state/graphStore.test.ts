@@ -46,6 +46,7 @@ describe("graphStore session management", () => {
           targetId: "c2",
           type: "supports",
           kind: "fact",
+          style: "curve",
           strength: 0.5,
           explanation: "",
           origin: "user",

@@ -2,8 +2,10 @@ import { useEffect, useMemo, useRef } from "react";
 import {
   RelationshipTypeSchema,
   RelationshipKindSchema,
+  RelationshipStyleSchema,
   type RelationshipType,
   type RelationshipKind,
+  type RelationshipStyle,
 } from "@thinking-explorer/shared";
 import { useFilterStore } from "../../state/filterStore.js";
 import { useGraphStore } from "../../state/graphStore.js";
@@ -25,6 +27,12 @@ const KIND_DASH: Record<RelationshipKind, string> = {
   analogy: "dotted",
 };
 
+const STYLE_LABEL: Record<RelationshipStyle, string> = {
+  curve: "Curved",
+  straight: "Straight",
+  step: "Step",
+};
+
 interface FilterPanelProps {
   onClose: () => void;
 }
@@ -35,9 +43,11 @@ export function FilterPanel({ onClose }: FilterPanelProps) {
   const hiddenCategories = useFilterStore((s) => s.hiddenCategories);
   const hiddenTypes = useFilterStore((s) => s.hiddenTypes);
   const hiddenKinds = useFilterStore((s) => s.hiddenKinds);
+  const hiddenStyles = useFilterStore((s) => s.hiddenStyles);
   const toggleCategory = useFilterStore((s) => s.toggleCategory);
   const toggleType = useFilterStore((s) => s.toggleType);
   const toggleKind = useFilterStore((s) => s.toggleKind);
+  const toggleStyle = useFilterStore((s) => s.toggleStyle);
   const clearAll = useFilterStore((s) => s.clearAll);
 
   const panelRef = useRef<HTMLDivElement | null>(null);
@@ -87,8 +97,18 @@ export function FilterPanel({ onClose }: FilterPanelProps) {
       .filter(([, n]) => n > 0);
   }, [relationships]);
 
+  const stylesInUse = useMemo(() => {
+    const counts = new Map<RelationshipStyle, number>();
+    for (const r of relationships) {
+      counts.set(r.style ?? "curve", (counts.get(r.style ?? "curve") ?? 0) + 1);
+    }
+    return RelationshipStyleSchema.options
+      .map((s) => [s, counts.get(s) ?? 0] as const)
+      .filter(([, n]) => n > 0);
+  }, [relationships]);
+
   const activeCount =
-    hiddenCategories.size + hiddenTypes.size + hiddenKinds.size;
+    hiddenCategories.size + hiddenTypes.size + hiddenKinds.size + hiddenStyles.size;
 
   return (
     <div ref={panelRef} className="filter-panel" role="dialog" aria-label="Filters">
@@ -196,6 +216,38 @@ export function FilterPanel({ onClose }: FilterPanelProps) {
                     className={`filter-chip__line filter-chip__line--${KIND_DASH[k]}`}
                   />
                   <span className="filter-chip__label">{k}</span>
+                  <span className="filter-chip__count">{count}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      <div className="filter-panel__section">
+        <div className="filter-panel__section-header">
+          <span>Relationship style</span>
+          <span className="filter-panel__count">
+            {stylesInUse.length - hiddenStyles.size}/{stylesInUse.length}
+          </span>
+        </div>
+        {stylesInUse.length === 0 ? (
+          <div className="filter-panel__empty">No relationships yet</div>
+        ) : (
+          <div className="filter-panel__chips">
+            {stylesInUse.map(([s, count]) => {
+              const hidden = hiddenStyles.has(s);
+              return (
+                <button
+                  key={s}
+                  className={`filter-chip ${hidden ? "is-off" : ""}`}
+                  onClick={() => toggleStyle(s)}
+                  title={hidden ? "Show" : "Hide"}
+                >
+                  <span
+                    className={`filter-chip__line filter-chip__line--${s === "curve" ? "dashed" : "solid"}`}
+                  />
+                  <span className="filter-chip__label">{STYLE_LABEL[s]}</span>
                   <span className="filter-chip__count">{count}</span>
                 </button>
               );
