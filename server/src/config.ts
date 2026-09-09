@@ -13,7 +13,7 @@ export const config = {
   databasePath: process.env.DATABASE_PATH ?? "./data/synapse.db",
   openrouter: {
     apiKey: process.env.OPENROUTER_API_KEY ?? "",
-    model: process.env.OPENROUTER_MODEL ?? "anthropic/claude-3.5-sonnet",
+    model: process.env.OPENROUTER_MODEL ?? "nvidia/nemotron-3.5-lightning:free",
     baseUrl: process.env.OPENROUTER_BASE_URL ?? "https://openrouter.ai/api/v1",
     timeoutMs: Number(process.env.OPENROUTER_TIMEOUT_MS ?? 30_000),
     fallbackModels: (process.env.OPENROUTER_FALLBACK_MODELS ??
