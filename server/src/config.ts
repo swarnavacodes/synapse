@@ -22,6 +22,9 @@ export const config = {
       .map((model) => model.trim())
       .filter(Boolean),
   },
+  tavily: {
+    apiKey: process.env.TAVILY_API_KEY ?? "",
+  },
 } as const;
 
 export const VERSION = "0.1.0";

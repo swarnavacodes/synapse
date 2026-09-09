@@ -1,20 +1,17 @@
 import { tavily, type TavilyClient, type TavilySearchResponse } from "@tavily/core";
+import { config } from "../config.js";
+import type { WebSearchResult } from "@thinking-explorer/shared";
+import { WebSearchResultSchema } from "@thinking-explorer/shared";
 
 let client: TavilyClient | null = null;
 
 function getClient(): TavilyClient {
   if (!client) {
-    client = tavily();
+    client = config.tavily.apiKey
+      ? tavily({ apiKey: config.tavily.apiKey })
+      : tavily();
   }
   return client;
-}
-
-export interface WebSearchResult {
-  title: string;
-  url: string;
-  content: string;
-  score: number;
-  publishedDate: string;
 }
 
 export interface WebSearchOutput {
@@ -36,16 +33,20 @@ export async function webSearch(
     includeAnswer: "basic",
   });
 
-  return {
-    query: response.query,
-    answer: response.answer ?? null,
-    results: response.results.map((r) => ({
+  const results = WebSearchResultSchema.array().parse(
+    response.results.map((r) => ({
       title: r.title,
       url: r.url,
       content: r.content,
       score: r.score,
       publishedDate: r.publishedDate ?? null,
-    })),
+    }))
+  );
+
+  return {
+    query: response.query,
+    answer: response.answer ?? null,
+    results,
     responseTimeMs: response.responseTime,
   };
 }
