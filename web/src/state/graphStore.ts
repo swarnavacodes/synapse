@@ -60,6 +60,7 @@ interface GraphState {
   challengeNode: (req: ChallengeRequest) => Promise<ChallengeResponse>;
   dismissExpandMetrics: () => void;
   compareNodes: (req: CompareRequest) => Promise<CompareResponse>;
+  webSearch: (query: string, maxResults?: number) => Promise<import("@thinking-explorer/shared").WebSearchResponse>;
   loadTrail: () => Promise<void>;
   removeConcept: (id: string) => Promise<void>;
   clearError: () => void;
@@ -274,6 +275,22 @@ export const useGraphStore = create<GraphState>((set, get) => ({
     const sessionId = get().currentSessionId;
     if (!sessionId) throw new Error("No active session");
     return api.compare(sessionId, req);
+  },
+
+  async webSearch(query, maxResults) {
+    const { api } = await import("../api/client.js");
+    const sessionId = get().currentSessionId;
+    if (!sessionId) throw new Error("No active session");
+    set({ error: null });
+    try {
+      const result = await api.search(sessionId, { query, maxResults: maxResults ?? 5, topic: "general" });
+      return result;
+    } catch (err) {
+      set({
+        error: err instanceof Error ? err.message : "Web search failed",
+      });
+      throw err;
+    }
   },
 
   async loadTrail() {

@@ -219,3 +219,32 @@ export const TrailEventSchema = z.object({
   createdAt: z.number(),
 });
 export type TrailEvent = z.infer<typeof TrailEventSchema>;
+
+export const WebSearchRequestSchema = z.object({
+  query: z.string().min(1).max(500),
+  maxResults: z.number().int().min(1).max(10).optional().default(5),
+  topic: z.enum(["general", "news"]).optional().default("general"),
+});
+export type WebSearchRequest = z.infer<typeof WebSearchRequestSchema>;
+
+export const WebSearchResultSchema = z.object({
+  title: z.string(),
+  url: z.string(),
+  content: z.string(),
+  score: z.number(),
+  publishedDate: z.string().nullable().optional().default(null),
+});
+export type WebSearchResult = z.infer<typeof WebSearchResultSchema>;
+
+export const WebSearchResponseSchema = z.object({
+  query: z.string(),
+  answer: z.string().nullable(),
+  results: z.array(WebSearchResultSchema),
+  responseTimeMs: z.number(),
+});
+export type WebSearchResponse = z.infer<typeof WebSearchResponseSchema>;
+
+export const LLMSearchOutputSchema = z.object({
+  answer: z.string().min(1).max(2000),
+});
+export type LLMSearchOutput = z.infer<typeof LLMSearchOutputSchema>;

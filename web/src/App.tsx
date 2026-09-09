@@ -6,6 +6,7 @@ import {
   type CompareResponse,
   type ChallengeResponse,
   type TrailEvent,
+  type WebSearchResult,
 } from "@thinking-explorer/shared";
 import { Canvas } from "./graph/Canvas.js";
 import { useGraphStore } from "./state/graphStore.js";
@@ -18,6 +19,7 @@ import { TrailPanel } from "./features/trail/TrailPanel.js";
 import { CompareModal } from "./features/compare/CompareModal.js";
 import { ChallengeModal } from "./features/challenge/ChallengeModal.js";
 import { FilterPanel } from "./features/filter/FilterPanel.js";
+import { SearchPanel, SearchResults } from "./features/search/SearchPanel.js";
 import { useFilterStore, persistFilterForSession } from "./state/filterStore.js";
 
 type Status =
@@ -46,6 +48,10 @@ export function App() {
   >(null);
   const [challenge, setChallenge] = useState<
     | { label: string; result: ChallengeResponse }
+    | null
+  >(null);
+  const [searchResults, setSearchResults] = useState<
+    | { results: WebSearchResult[]; query: string; answer: string | null }
     | null
   >(null);
 
@@ -400,6 +406,16 @@ export function App() {
               <h3>Sessions</h3>
               <SessionList />
             </section>
+            {currentSessionId ? (
+              <section className="panel__section">
+                <h3>Web Search</h3>
+                <SearchPanel
+                  onResults={(results, q, answer) =>
+                    setSearchResults({ results, query: q, answer })
+                  }
+                />
+              </section>
+            ) : null}
             <SidePanel />
           </aside>
         ) : null}
@@ -438,6 +454,15 @@ export function App() {
           targetLabel={challenge.label}
           result={challenge.result}
           onClose={() => setChallenge(null)}
+        />
+      ) : null}
+
+      {searchResults ? (
+        <SearchResults
+          query={searchResults.query}
+          answer={searchResults.answer}
+          results={searchResults.results}
+          onClose={() => setSearchResults(null)}
         />
       ) : null}
     </div>

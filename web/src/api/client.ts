@@ -19,6 +19,8 @@ import {
   type Session,
   type SavePositionsRequest,
   type TrailEvent,
+  type WebSearchRequest,
+  type WebSearchResponse,
 } from "@thinking-explorer/shared";
 
 export class ApiError extends Error {
@@ -129,4 +131,9 @@ export const api = {
     }),
   getTrail: (sessionId: string) =>
     request<{ events: TrailEvent[] }>(`/api/sessions/${sessionId}/trail`),
+  search: (sessionId: string, body: WebSearchRequest) =>
+    request<WebSearchResponse>(`/api/sessions/${sessionId}/search`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
 };
