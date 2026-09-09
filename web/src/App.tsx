@@ -351,11 +351,18 @@ export function App() {
                 </button>
                 <button
                   className="topbar__session-btn primary"
-                  onClick={() => void handleExport()}
+                  onClick={() => {
+                    if (exportSummary) {
+                      // Already generated — just reopen/re-show modal
+                      // The modal is shown because exportSummary is set
+                      return;
+                    }
+                    void handleExport();
+                  }}
                   disabled={exportLoading}
-                  title="Export session summary"
+                  title={exportSummary ? "Show generated summary" : "Generate session summary"}
                 >
-                  {exportLoading ? "Generating..." : "Export Summary"}
+                  {exportLoading ? "Generating..." : exportSummary ? "Show Summary" : "Export Summary"}
                 </button>
               </div>
             ) : (
