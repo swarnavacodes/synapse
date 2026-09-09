@@ -57,7 +57,7 @@ function downloadAsMarkdown(summary: ExportSummary): void {
   URL.revokeObjectURL(url);
 }
 
-export function ExportModal({ summary, onClose }: ExportModalProps) {
+export function ExportModal({ summary, onClose, onRegenerate }: ExportModalProps) {
   const [conceptsExpanded, setConceptsExpanded] = useState(false);
   const [connectionsExpanded, setConnectionsExpanded] = useState(false);
   const [qaExpanded, setQaExpanded] = useState(false);
