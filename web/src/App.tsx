@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   HealthResponseSchema,
   type HealthResponse,
@@ -58,6 +58,7 @@ export function App() {
   >(null);
   const [exportSummary, setExportSummary] = useState<ExportSummary | null>(null);
   const [exportLoading, setExportLoading] = useState(false);
+  const hasGenerated = useRef(false);
 
   const currentSessionId = useGraphStore((s) => s.currentSessionId);
   const session = useGraphStore((s) => s.session);
@@ -205,10 +206,15 @@ export function App() {
   );
 
   const handleExport = useCallback(async () => {
-    // If we already have a summary, just show it (don't regenerate)
+    // If summary exists, don't regenerate — just show it
     if (exportSummary) {
       return;
     }
+    // Prevent multiple generations
+    if (hasGenerated.current) {
+      return;
+    }
+    hasGenerated.current = true;
     setExportLoading(true);
     try {
       const summary = await fetchExportSummary();
@@ -494,9 +500,8 @@ export function App() {
           summary={exportSummary}
           onClose={() => setExportSummary(null)}
           onRegenerate={() => {
+            hasGenerated.current = false;
             setExportSummary(null);
-            // Clear summary but don't trigger regeneration automatically
-            // User can click Export Summary button again to regenerate
           }}
         />
       ) : null}
