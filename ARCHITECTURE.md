@@ -13,11 +13,11 @@ Thinking Explorer is a TypeScript monorepo for exploring concepts as an interact
 ```mermaid
 flowchart LR
     User[User]
-    Web[Web app\nReact + Vite + React Flow]
-    State[Client state\nZustand]
-    API[Express API\nREST + Zod validation]
-    DB[(SQLite\nGraph and session data)]
-    LLM[LLM provider\nOpenRouter]
+    Web[Web app<br/>React + Vite + React Flow]
+    State[Client state<br/>Zustand]
+    API[Express API<br/>REST + Zod validation]
+    DB[(SQLite<br/>Graph and session data)]
+    LLM[LLM provider<br/>OpenRouter]
     Fallback[Free-model fallback chain]
 
     User --> Web
@@ -110,14 +110,14 @@ The server is the authority for graph mutations. Incoming requests and LLM respo
 sequenceDiagram
     participant U as User
     participant W as Web
-    participant S as Graph store
-    participant E as Expand route
-    participant L as OpenRouter provider
+    participant S as "Graph store"
+    participant E as "Expand route"
+    participant L as "OpenRouter provider"
     participant D as SQLite
 
     U->>W: Click Expand
     W->>S: Set expanding state
-    S->>E: POST /api/sessions/:id/expand
+    S->>E: "POST expand"
     E->>D: Load seed and neighborhood
     E->>L: Generate structured expansion JSON
     L-->>E: Validated concepts and relationships
@@ -134,13 +134,13 @@ If the selected OpenRouter model is unavailable, the provider tries the configur
 ```mermaid
 sequenceDiagram
     participant U as User
-    participant N as Concept node
-    participant E as Details route
-    participant L as OpenRouter provider
+    participant N as "Concept node"
+    participant E as "Details route"
+    participant L as "OpenRouter provider"
     participant D as SQLite
 
     U->>N: Click More details
-    N->>E: GET /api/sessions/:id/concepts/:id/details
+    N->>E: "GET details"
     E->>D: Load concept neighborhood
     E->>L: Generate structured explanation
     L-->>E: Overview, significance, connections, example
