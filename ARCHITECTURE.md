@@ -97,7 +97,6 @@ flowchart TB
     Repos --> SQLite
     Routes --> Provider
     Provider --> OpenRouter
-    OpenRouter --> Validation
 ```
 
 The server is the authority for graph mutations. Incoming requests and LLM responses are validated before data is persisted.
