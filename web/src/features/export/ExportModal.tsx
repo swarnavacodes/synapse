@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import type { ExportSummary } from "@thinking-explorer/shared";
 
@@ -13,6 +13,16 @@ function formatTime(ts: number): string {
 
 function copyToClipboard(text: string): void {
   navigator.clipboard.writeText(text).catch(() => {});
+}
+
+function downloadSection(filename: string, content: string): void {
+  const blob = new Blob([content], { type: "text/markdown" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 function downloadAsMarkdown(summary: ExportSummary): void {
@@ -47,6 +57,10 @@ function downloadAsMarkdown(summary: ExportSummary): void {
 }
 
 export function ExportModal({ summary, onClose }: ExportModalProps) {
+  const [conceptsExpanded, setConceptsExpanded] = useState(true);
+  const [connectionsExpanded, setConnectionsExpanded] = useState(true);
+  const [qaExpanded, setQaExpanded] = useState(true);
+
   const qaPairs = useMemo(() => {
     const pairs: Array<{ question: string; answer: string }> = [];
     for (const c of summary.concepts) {
@@ -93,6 +107,43 @@ export function ExportModal({ summary, onClose }: ExportModalProps) {
     copyToClipboard(parts.join("\n"));
   };
 
+  const handleDownloadConcepts = () => {
+    const parts: string[] = [];
+    parts.push(`# Concepts — ${summary.session.title ?? "Untitled Session"}`);
+    parts.push("");
+    for (const c of summary.concepts) {
+      const cat = c.category ? ` (${c.category})` : "";
+      const origin = c.origin !== "user" ? ` — *${c.origin}*` : "";
+      const sum = c.summary ? ` — ${c.summary}` : "";
+      parts.push(`- **${c.label}**${cat}${origin}${sum}`);
+    }
+    downloadSection(`session-${summary.session.id.slice(0, 8)}-concepts.md`, parts.join("\n"));
+  };
+
+  const handleDownloadConnections = () => {
+    const parts: string[] = [];
+    parts.push(`# Connections — ${summary.session.title ?? "Untitled Session"}`);
+    parts.push("");
+    for (const r of summary.relationships) {
+      const expl = r.explanation ? ` — ${r.explanation}` : "";
+      parts.push(`- ${r.sourceLabel} —[${r.type}]→ ${r.targetLabel} (${r.kind}, strength: ${r.strength})${expl}`);
+    }
+    downloadSection(`session-${summary.session.id.slice(0, 8)}-connections.md`, parts.join("\n"));
+  };
+
+  const handleDownloadQA = () => {
+    const parts: string[] = [];
+    parts.push(`# Q&A Synthesis — ${summary.session.title ?? "Untitled Session"}`);
+    parts.push("");
+    for (const qa of qaPairs) {
+      parts.push(`**Q: ${qa.question}**`);
+      parts.push("");
+      parts.push(`A: ${qa.answer}`);
+      parts.push("");
+    }
+    downloadSection(`session-${summary.session.id.slice(0, 8)}-qa.md`, parts.join("\n"));
+  };
+
   return (
     <div className="compare-modal-overlay" onClick={onClose}>
       <div className="compare-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 720, maxHeight: "80vh", overflow: "auto" }}>
@@ -114,43 +165,80 @@ export function ExportModal({ summary, onClose }: ExportModalProps) {
         </div>
 
         <div className="panel__section">
-          <h3>Concepts</h3>
-          <ul className="concept-list">
-            {summary.concepts.map((c: { id: string; label: string; category?: string; origin: string; summary?: string }) => (
-              <li key={c.id} className="concept-list__item">
-                <div>
-                  <div>{c.label}</div>
-                  <small>{c.category || "no category"} · {c.origin}</small>
-                  {c.summary && <div style={{ fontSize: 12, color: "var(--text-dim)" }}>{c.summary}</div>}
-                </div>
-              </li>
-            ))}
-          </ul>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+            <h3 style={{ margin: 0, cursor: "pointer" }} onClick={() => setConceptsExpanded(!conceptsExpanded)}>
+              {conceptsExpanded ? "▼" : "▶"} Concepts ({summary.conceptCount})
+            </h3>
+            <button
+              style={{ fontSize: 11, padding: "3px 8px" }}
+              onClick={handleDownloadConcepts}
+              title="Download concepts as markdown"
+            >
+              ↓ Download
+            </button>
+          </div>
+          {conceptsExpanded && (
+            <ul className="concept-list">
+              {summary.concepts.map((c: { id: string; label: string; category?: string; origin: string; summary?: string }) => (
+                <li key={c.id} className="concept-list__item">
+                  <div>
+                    <div>{c.label}</div>
+                    <small>{c.category || "no category"} · {c.origin}</small>
+                    {c.summary && <div style={{ fontSize: 12, color: "var(--text-dim)" }}>{c.summary}</div>}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
 
         <div className="panel__section">
-          <h3>Connections</h3>
-          <ul className="rel-list">
-            {summary.relationships.map((r: { id: string; sourceLabel: string; targetLabel: string; type: string; kind: string; strength: number; explanation?: string }) => (
-              <li key={r.id} className="concept-list__item">
-                <div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+            <h3 style={{ margin: 0, cursor: "pointer" }} onClick={() => setConnectionsExpanded(!connectionsExpanded)}>
+              {connectionsExpanded ? "▼" : "▶"} Connections ({summary.relationshipCount})
+            </h3>
+            <button
+              style={{ fontSize: 11, padding: "3px 8px" }}
+              onClick={handleDownloadConnections}
+              title="Download connections as markdown"
+            >
+              ↓ Download
+            </button>
+          </div>
+          {connectionsExpanded && (
+            <ul className="rel-list">
+              {summary.relationships.map((r: { id: string; sourceLabel: string; targetLabel: string; type: string; kind: string; strength: number; explanation?: string }) => (
+                <li key={r.id} className="concept-list__item">
                   <div>
-                    {r.sourceLabel} → {r.targetLabel}
+                    <div>
+                      {r.sourceLabel} → {r.targetLabel}
+                    </div>
+                    <small>
+                      {r.type} · {r.kind} · {(r.strength * 100).toFixed(0)}%
+                      {r.explanation && ` — ${r.explanation}`}
+                    </small>
                   </div>
-                  <small>
-                    {r.type} · {r.kind} · {(r.strength * 100).toFixed(0)}%
-                    {r.explanation && ` — ${r.explanation}`}
-                  </small>
-                </div>
-              </li>
-            ))}
-          </ul>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
 
         {qaPairs.length > 0 && (
           <div className="panel__section">
-            <h3>Q&A Synthesis</h3>
-            {qaPairs.map((qa, i) => (
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+              <h3 style={{ margin: 0, cursor: "pointer" }} onClick={() => setQaExpanded(!qaExpanded)}>
+                {qaExpanded ? "▼" : "▶"} Q&A Synthesis ({qaPairs.length})
+              </h3>
+              <button
+                style={{ fontSize: 11, padding: "3px 8px" }}
+                onClick={handleDownloadQA}
+                title="Download Q&A as markdown"
+              >
+                ↓ Download
+              </button>
+            </div>
+            {qaExpanded && qaPairs.map((qa, i) => (
               <div key={i} style={{ marginBottom: 12, fontSize: 13 }}>
                 <div style={{ fontWeight: 600, marginBottom: 2 }}>Q: {qa.question}</div>
                 <div style={{ color: "var(--text-dim)" }}>A: {qa.answer}</div>
