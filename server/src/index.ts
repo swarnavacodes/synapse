@@ -12,6 +12,7 @@ import { challengeRouter } from "./routes/challenge.js";
 import { compareRouter } from "./routes/compare.js";
 import { trailRouter } from "./routes/trail.js";
 import { searchRouter } from "./routes/search.js";
+import { exportRouter } from "./routes/export.js";
 import { HttpError } from "./validation/validate.js";
 
 runMigrations();
@@ -39,6 +40,7 @@ app.use("/api/sessions/:id/challenge", challengeRouter);
 app.use("/api/sessions/:id/compare", compareRouter);
 app.use("/api/sessions/:id/trail", trailRouter);
 app.use("/api/sessions/:id/search", searchRouter);
+app.use("/api/sessions/:id/export", exportRouter);
 
 app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
   if (err instanceof HttpError) {

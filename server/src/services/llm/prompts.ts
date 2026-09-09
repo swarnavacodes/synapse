@@ -407,3 +407,71 @@ export function buildComparePrompt(ctx: CompareContext): LLMRequest {
     user: serializeCompareContext(ctx),
   };
 }
+
+export interface ExportSummaryContext {
+  title: string | null;
+  concepts: Array<{ label: string; category?: string; summary?: string; origin: string }>;
+  relationships: Array<{ sourceLabel: string; targetLabel: string; type: string; kind: string; explanation?: string }>;
+  expandedConceptCount: number;
+}
+
+const EXPORT_SUMMARY_SYSTEM_PROMPT = `You write a comprehensive narrative summary of an intellectual exploration session.
+
+Hard rules:
+- Output STRICT JSON only. No commentary, no markdown fences.
+- Schema:
+  {
+    "narrative": string  // A 500-700 word narrative in markdown format
+  }
+- The narrative should be 500-700 words long, scaled based on session depth and complexity.
+- Write in clear, accessible prose that captures the intellectual journey.
+- Highlight key themes, important relationships, and insights that emerged.
+- For sessions with many expanded concepts (those with summaries), provide deeper analysis.
+- For sessions with fewer expanded concepts, focus on the overall structure and connections.
+- Use markdown formatting: headers, bold, lists where appropriate.
+- Do not mention the software, UI, or technical implementation.
+- Focus on the ideas themselves and how they connect.
+- Be substantive and intellectually engaging.`;
+
+function serializeExportContext(ctx: ExportSummaryContext): string {
+  const lines: string[] = [];
+  lines.push(`# Session: ${ctx.title || "Untitled"}`);
+  lines.push(`Total concepts: ${ctx.concepts.length}`);
+  lines.push(`Expanded concepts (with summaries): ${ctx.expandedConceptCount}`);
+  lines.push(`Total relationships: ${ctx.relationships.length}`);
+  
+  const categories = [...new Set(ctx.concepts.map(c => c.category).filter(Boolean))];
+  if (categories.length > 0) {
+    lines.push(`Categories: ${categories.join(", ")}`);
+  }
+  
+  lines.push("\n## Concepts");
+  for (const c of ctx.concepts) {
+    const cat = c.category ? ` [${c.category}]` : "";
+    const summary = c.summary ? ` — ${c.summary}` : "";
+    const origin = c.origin !== "user" ? ` (${c.origin})` : "";
+    lines.push(`- ${c.label}${cat}${origin}${summary}`);
+  }
+  
+  lines.push("\n## Key Relationships");
+  for (const r of ctx.relationships.slice(0, 15)) {
+    const expl = r.explanation ? ` — ${r.explanation}` : "";
+    lines.push(`- ${r.sourceLabel} —[${r.type}]→ ${r.targetLabel}${expl}`);
+  }
+  if (ctx.relationships.length > 15) {
+    lines.push(`... and ${ctx.relationships.length - 15} more relationships`);
+  }
+  
+  lines.push("\nWrite a 500-700 word narrative summary that synthesizes this exploration.");
+  lines.push("Return ONLY the JSON object with the \"narrative\" field containing markdown text.");
+  
+  return lines.join("\n");
+}
+
+export function buildExportSummaryPrompt(ctx: ExportSummaryContext): LLMRequest {
+  return {
+    purpose: "export-summary",
+    system: EXPORT_SUMMARY_SYSTEM_PROMPT,
+    user: serializeExportContext(ctx),
+  };
+}

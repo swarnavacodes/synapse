@@ -14,6 +14,7 @@ import {
   type CreateRelationshipRequest,
   type ExpandRequest,
   type ExpandResponse,
+  type ExportSummary,
   type Graph,
   type Relationship,
   type Session,
@@ -131,6 +132,8 @@ export const api = {
     }),
   getTrail: (sessionId: string) =>
     request<{ events: TrailEvent[] }>(`/api/sessions/${sessionId}/trail`),
+  exportSummary: (sessionId: string) =>
+    request<ExportSummary>(`/api/sessions/${sessionId}/export/summary`),
   search: (sessionId: string, body: WebSearchRequest) =>
     request<WebSearchResponse>(`/api/sessions/${sessionId}/search`, {
       method: "POST",

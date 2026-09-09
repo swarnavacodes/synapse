@@ -7,6 +7,7 @@ export const LLMPurposeSchema = z.enum([
   "compare",
   "details",
   "qa",
+  "export-summary",
 ]);
 export type LLMPurpose = z.infer<typeof LLMPurposeSchema>;
 

@@ -7,6 +7,7 @@ import {
   type ChallengeResponse,
   type TrailEvent,
   type WebSearchResult,
+  type ExportSummary,
 } from "@thinking-explorer/shared";
 import { Canvas } from "./graph/Canvas.js";
 import { useGraphStore } from "./state/graphStore.js";
@@ -20,6 +21,7 @@ import { CompareModal } from "./features/compare/CompareModal.js";
 import { ChallengeModal } from "./features/challenge/ChallengeModal.js";
 import { FilterPanel } from "./features/filter/FilterPanel.js";
 import { SearchPanel, SearchResults } from "./features/search/SearchPanel.js";
+import { ExportModal } from "./features/export/ExportModal.js";
 import { useFilterStore, persistFilterForSession } from "./state/filterStore.js";
 
 type Status =
@@ -54,6 +56,8 @@ export function App() {
     | { results: WebSearchResult[]; query: string; answer: string | null }
     | null
   >(null);
+  const [exportSummary, setExportSummary] = useState<ExportSummary | null>(null);
+  const [exportLoading, setExportLoading] = useState(false);
 
   const currentSessionId = useGraphStore((s) => s.currentSessionId);
   const session = useGraphStore((s) => s.session);
@@ -67,6 +71,7 @@ export function App() {
   const challengeNode = useGraphStore((s) => s.challengeNode);
   const compareNodes = useGraphStore((s) => s.compareNodes);
   const loadTrail = useGraphStore((s) => s.loadTrail);
+  const fetchExportSummary = useGraphStore((s) => s.fetchExportSummary);
 
   const selectedNodeId = useSelectionStore((s) => s.selectedNodeId);
   const selectNode = useSelectionStore((s) => s.selectNode);
@@ -75,7 +80,6 @@ export function App() {
 
   const closeFilterOnCanvasClick = useCallback((e: MouseEvent) => {
     const target = e.target as HTMLElement;
-    // Don't close if clicking the filter button itself or its badge
     if (target.closest(".topbar__filter-toggle") || target.closest(".topbar__filter-badge")) {
       return;
     }
@@ -156,18 +160,6 @@ export function App() {
     }
   }, [trailOpen, currentSessionId, trail.length, loadTrail]);
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      const isK = e.key === "k" || e.key === "K";
-      if (isK && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-        setPaletteOpen((v) => !v);
-      }
-    };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, []);
-
   const handleExpand = useCallback(
     (id: string) => {
       void expandNode({ nodeId: id, depth: 1 });
@@ -211,6 +203,18 @@ export function App() {
     },
     [compareNodes, concepts]
   );
+
+  const handleExport = useCallback(async () => {
+    setExportLoading(true);
+    try {
+      const summary = await fetchExportSummary();
+      setExportSummary(summary);
+    } catch (err) {
+      console.error("Export failed:", err);
+    } finally {
+      setExportLoading(false);
+    }
+  }, [fetchExportSummary]);
 
   const handleTrailEvent = useCallback(
     (event: TrailEvent) => {
@@ -341,6 +345,14 @@ export function App() {
                 >
                   Panel: {panelOpen ? "Open" : "Closed"}
                 </button>
+                <button
+                  className="topbar__session-btn primary"
+                  onClick={() => void handleExport()}
+                  disabled={exportLoading}
+                  title="Export session summary"
+                >
+                  {exportLoading ? "Generating..." : "Export Summary"}
+                </button>
               </div>
             ) : (
               <div className="topbar__session-info">
@@ -463,6 +475,13 @@ export function App() {
           answer={searchResults.answer}
           results={searchResults.results}
           onClose={() => setSearchResults(null)}
+        />
+      ) : null}
+
+      {exportSummary ? (
+        <ExportModal
+          summary={exportSummary}
+          onClose={() => setExportSummary(null)}
         />
       ) : null}
     </div>

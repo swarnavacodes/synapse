@@ -14,6 +14,7 @@ import type {
   CompareRequest,
   CompareResponse,
   TrailEvent,
+  ExportSummary,
 } from "@thinking-explorer/shared";
 
 export interface ExpandMetrics {
@@ -24,19 +25,20 @@ export interface ExpandMetrics {
 }
 
 interface GraphState {
-  sessions: Session[];
-  currentSessionId: string | null;
-  session: Session | null;
-  concepts: Concept[];
-  relationships: Relationship[];
-  positions: Graph["positions"];
-  trail: TrailEvent[];
-  loading: boolean;
-  expandingNodeId: string | null;
-  connectingNodeId: string | null;
-  lastExpandRequest: ExpandRequest | null;
-  error: string | null;
-  expandMetrics: ExpandMetrics | null;
+   sessions: Session[];
+   currentSessionId: string | null;
+   session: Session | null;
+   concepts: Concept[];
+   relationships: Relationship[];
+   positions: Graph["positions"];
+   trail: TrailEvent[];
+   loading: boolean;
+   expandingNodeId: string | null;
+   connectingNodeId: string | null;
+   lastExpandRequest: ExpandRequest | null;
+   error: string | null;
+   expandMetrics: ExpandMetrics | null;
+   exportSummary: ExportSummary | null;
 
   refreshSessions: () => Promise<void>;
   openSession: (id: string) => Promise<void>;
@@ -64,22 +66,24 @@ interface GraphState {
   loadTrail: () => Promise<void>;
   removeConcept: (id: string) => Promise<void>;
   clearError: () => void;
+  fetchExportSummary: () => Promise<ExportSummary>;
 }
 
 export const useGraphStore = create<GraphState>((set, get) => ({
-  sessions: [],
-  currentSessionId: null,
-  session: null,
-  concepts: [],
-  relationships: [],
-  positions: {},
-  trail: [],
-  loading: false,
-  expandingNodeId: null,
-  connectingNodeId: null,
-  lastExpandRequest: null,
-  error: null,
-  expandMetrics: null,
+   sessions: [],
+   currentSessionId: null,
+   session: null,
+   concepts: [],
+   relationships: [],
+   positions: {},
+   trail: [],
+   loading: false,
+   expandingNodeId: null,
+   connectingNodeId: null,
+   lastExpandRequest: null,
+   error: null,
+   expandMetrics: null,
+   exportSummary: null,
 
   async refreshSessions() {
     const { api } = await import("../api/client.js");
@@ -131,6 +135,7 @@ export const useGraphStore = create<GraphState>((set, get) => ({
       connectingNodeId: null,
       lastExpandRequest: null,
       expandMetrics: null,
+      exportSummary: null,
     });
   },
 
@@ -147,6 +152,7 @@ export const useGraphStore = create<GraphState>((set, get) => ({
             relationships: [],
             positions: {},
             trail: [],
+            exportSummary: null,
           }
         : {}),
     }));
@@ -322,7 +328,15 @@ export const useGraphStore = create<GraphState>((set, get) => ({
     set({ error: null });
   },
 
-  dismissExpandMetrics() {
+dismissExpandMetrics() {
     set({ expandMetrics: null });
+  },
+  async fetchExportSummary() {
+    const sessionId = get().currentSessionId;
+    if (!sessionId) throw new Error("No active session");
+    const { api } = await import("../api/client.js");
+    const summary = await api.exportSummary(sessionId);
+    set({ exportSummary: summary });
+    return summary;
   },
 }));

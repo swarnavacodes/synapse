@@ -24,15 +24,14 @@ export function ConceptNode({ data, selected }: NodeProps) {
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [detailsError, setDetailsError] = useState(false);
   const qaStore = useQAStore();
-  const persistedMessages = qaStore.getHistory(concept.id);
-  const [qaMessages, setQaMessages] = useState<ConceptQAMessage[]>(persistedMessages);
+  const [qaMessages, setQaMessages] = useState<ConceptQAMessage[]>([]);
   const [qaInput, setQaInput] = useState("");
   const [qaLoading, setQaLoading] = useState(false);
   const [qaError, setQaError] = useState<string | null>(null);
 
   useEffect(() => {
-    setQaMessages(persistedMessages);
-  }, [concept.id, persistedMessages]);
+    setQaMessages(qaStore.getHistory(concept.id));
+  }, [concept.id, qaStore]);
 
   const openConceptDetails = async () => {
     setDetailsLoading(true);

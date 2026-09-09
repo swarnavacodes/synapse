@@ -851,6 +851,21 @@ input:focus, select:focus, textarea:focus {
   flex-direction: column;
   box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4);
   overflow: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: #53617f transparent;
+}
+.compare-modal::-webkit-scrollbar {
+  width: 8px;
+}
+.compare-modal::-webkit-scrollbar-track {
+  background: transparent;
+}
+.compare-modal::-webkit-scrollbar-thumb {
+  background: #53617f;
+  border-radius: 999px;
+}
+.compare-modal::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
 }
 .compare-modal__header {
   display: flex;
