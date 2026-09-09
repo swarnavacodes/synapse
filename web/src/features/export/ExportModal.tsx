@@ -57,9 +57,9 @@ function downloadAsMarkdown(summary: ExportSummary): void {
 }
 
 export function ExportModal({ summary, onClose }: ExportModalProps) {
-  const [conceptsExpanded, setConceptsExpanded] = useState(true);
-  const [connectionsExpanded, setConnectionsExpanded] = useState(true);
-  const [qaExpanded, setQaExpanded] = useState(true);
+  const [conceptsExpanded, setConceptsExpanded] = useState(false);
+  const [connectionsExpanded, setConnectionsExpanded] = useState(false);
+  const [qaExpanded, setQaExpanded] = useState(false);
 
   const qaPairs = useMemo(() => {
     const pairs: Array<{ question: string; answer: string }> = [];
