@@ -154,7 +154,13 @@ export function ExportModal({ summary, onClose }: ExportModalProps) {
         </div>
 
         <div className="compare-modal__summary">
-          <ReactMarkdown>{summary.narrative}</ReactMarkdown>
+          {summary.narrative ? (
+            <ReactMarkdown>{summary.narrative}</ReactMarkdown>
+          ) : (
+            <div style={{ color: "var(--text-dim)", fontStyle: "italic" }}>
+              No narrative summary available for this session.
+            </div>
+          )}
         </div>
 
         <div className="panel__section">
