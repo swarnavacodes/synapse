@@ -137,39 +137,64 @@ function buildNarrative({
 }): string {
   const parts: string[] = [];
 
-  const sessionLabel = title ? `Session "${title}"` : "Untitled session";
-  parts.push(`# ${sessionLabel}`);
-  parts.push("");
-  parts.push(`This session contains **${conceptCount} concepts** and **${relationshipCount} relationships** connecting them.`);
-  parts.push("");
-
+  const sessionLabel = title ? `"${title}"` : "Untitled";
+  
+  // Opening paragraph
+  parts.push(`This exploration session, ${sessionLabel}, represents an intellectual journey through ${conceptCount} interconnected concepts, woven together by ${relationshipCount} semantic relationships. `);
+  
   if (categories.length > 0) {
-    parts.push(`**Categories:** ${categories.join(", ")}`);
+    parts.push(`The exploration spans ${categories.length === 1 ? 'the domain of' : 'multiple domains including'} **${categories.join(", ")}**, `);
   }
-  if (originCounts.user > 0 || originCounts.llm > 0 || originCounts.derived > 0) {
-    const origins: string[] = [];
-    if (originCounts.user) origins.push(`${originCounts.user} user-created`);
-    if (originCounts.llm) origins.push(`${originCounts.llm} AI-generated`);
-    if (originCounts.derived) origins.push(`${originCounts.derived} derived`);
-    parts.push(`**Origins:** ${origins.join(", ")}`);
+  
+  if (originCounts.user > 0 && originCounts.llm > 0) {
+    parts.push(`combining ${originCounts.user} user-initiated ${originCounts.user === 1 ? 'concept' : 'concepts'} with ${originCounts.llm} AI-generated ${originCounts.llm === 1 ? 'expansion' : 'expansions'}, creating a collaborative knowledge structure. `);
+  } else if (originCounts.llm > 0) {
+    parts.push(`with ${originCounts.llm} AI-generated concepts forming an extensive knowledge network. `);
+  } else if (originCounts.user > 0) {
+    parts.push(`built entirely from ${originCounts.user} user-defined ${originCounts.user === 1 ? 'concept' : 'concepts'}. `);
   }
-  parts.push("");
 
-  parts.push("## Concepts");
-  for (const label of conceptLabels) {
-    parts.push(`- ${label}`);
+  parts.push("\n\n");
+  
+  // Concept overview
+  parts.push("## Core Concepts\n\n");
+  parts.push("The session explores the following key ideas:\n\n");
+  
+  const conceptsPerLine = Math.min(conceptLabels.length, 10);
+  for (let i = 0; i < conceptLabels.length; i += conceptsPerLine) {
+    const chunk = conceptLabels.slice(i, i + conceptsPerLine);
+    parts.push("- " + chunk.join(", ") + "\n");
   }
-  parts.push("");
-
+  
+  parts.push("\n");
+  
+  // Relationship insights
   if (connectionLines) {
-    parts.push("## Connections");
-    parts.push(connectionLines);
-    parts.push("");
+    parts.push("## Knowledge Structure\n\n");
+    parts.push(`The ${relationshipCount} relationships form a semantic network where concepts are linked through various logical connections — including support, contradiction, analogy, causation, and compositional relationships. `);
+    parts.push("These connections reveal the deeper patterns and dependencies within the conceptual space.\n\n");
+    
+    const connectionSample = connectionLines.split("\n").slice(0, 8);
+    parts.push("**Key relationships include:**\n\n");
+    for (const conn of connectionSample) {
+      parts.push(`- ${conn}\n`);
+    }
+    if (relationshipCount > 8) {
+      parts.push(`\n...and ${relationshipCount - 8} additional connections.\n`);
+    }
+    parts.push("\n");
   }
 
-  parts.push("## Synthesis");
-  parts.push("This exploration connects the concepts above through the relationships listed. Each relationship represents a semantic link — such as support, contradiction, analogy, or causation — that binds the ideas together into a coherent knowledge structure.");
-  parts.push("");
-
-  return parts.join("\n");
+  // Closing synthesis
+  parts.push("## Synthesis\n\n");
+  parts.push("This exploration demonstrates how complex ideas interconnect and build upon one another. ");
+  parts.push("Each concept serves as a node in a larger web of understanding, with relationships mapping the logical, causal, and analogical bridges between them. ");
+  
+  if (originCounts.llm > 0) {
+    parts.push("The AI-assisted expansion has revealed deeper layers and unexpected connections, enriching the conceptual landscape. ");
+  }
+  
+  parts.push("Together, these elements form a coherent intellectual framework that captures both the breadth and depth of the subject matter.");
+  
+  return parts.join("");
 }
