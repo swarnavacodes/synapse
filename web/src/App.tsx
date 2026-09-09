@@ -488,8 +488,8 @@ export function App() {
           onClose={() => setExportSummary(null)}
           onRegenerate={() => {
             setExportSummary(null);
-            // Small delay so the close completes before reopening
-            setTimeout(() => void handleExport(), 50);
+            // Clear summary but don't trigger regeneration automatically
+            // User can click Export Summary button again to regenerate
           }}
         />
       ) : null}
