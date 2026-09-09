@@ -5,6 +5,7 @@ import type { ExportSummary } from "@thinking-explorer/shared";
 interface ExportModalProps {
   summary: ExportSummary;
   onClose: () => void;
+  onRegenerate?: () => void;
 }
 
 function formatTime(ts: number): string {
@@ -252,6 +253,11 @@ export function ExportModal({ summary, onClose }: ExportModalProps) {
             Download .md
           </button>
           <button onClick={handleCopyMarkdown}>Copy to Clipboard</button>
+          {onRegenerate && (
+            <button onClick={onRegenerate} title="Generate a new summary">
+              Regenerate
+            </button>
+          )}
           <button onClick={onClose}>Close</button>
         </div>
       </div>

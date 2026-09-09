@@ -205,6 +205,10 @@ export function App() {
   );
 
   const handleExport = useCallback(async () => {
+    // If we already have a summary, just show it (don't regenerate)
+    if (exportSummary) {
+      return;
+    }
     setExportLoading(true);
     try {
       const summary = await fetchExportSummary();
@@ -214,7 +218,7 @@ export function App() {
     } finally {
       setExportLoading(false);
     }
-  }, [fetchExportSummary]);
+  }, [fetchExportSummary, exportSummary]);
 
   const handleTrailEvent = useCallback(
     (event: TrailEvent) => {
@@ -482,6 +486,11 @@ export function App() {
         <ExportModal
           summary={exportSummary}
           onClose={() => setExportSummary(null)}
+          onRegenerate={() => {
+            setExportSummary(null);
+            // Small delay so the close completes before reopening
+            setTimeout(() => void handleExport(), 50);
+          }}
         />
       ) : null}
     </div>
