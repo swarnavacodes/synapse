@@ -58,7 +58,8 @@ export function App() {
   >(null);
   const [exportSummary, setExportSummary] = useState<ExportSummary | null>(null);
   const [exportLoading, setExportLoading] = useState(false);
-  const hasGenerated = useRef(false);
+  const [showExportView, setShowExportView] = useState(false);
+  const isGenerating = useRef(false);
 
   const currentSessionId = useGraphStore((s) => s.currentSessionId);
   const session = useGraphStore((s) => s.session);
@@ -115,6 +116,13 @@ export function App() {
     selectNode(saved);
     hydrateFromSession(currentSessionId);
   }, [currentSessionId, selectNode, hydrateFromSession]);
+
+  useEffect(() => {
+    setExportSummary(null);
+    setShowExportView(false);
+    setExportLoading(false);
+    isGenerating.current = false;
+  }, [currentSessionId]);
 
   useEffect(() => {
     if (!currentSessionId) return;
@@ -206,22 +214,23 @@ export function App() {
   );
 
   const handleExport = useCallback(async () => {
-    // If summary exists, don't regenerate — just show it
     if (exportSummary) {
+      setShowExportView(true);
       return;
     }
-    // Prevent multiple generations
-    if (hasGenerated.current) {
+    if (isGenerating.current) {
       return;
     }
-    hasGenerated.current = true;
+    isGenerating.current = true;
     setExportLoading(true);
     try {
       const summary = await fetchExportSummary();
       setExportSummary(summary);
+      setShowExportView(true);
     } catch (err) {
       console.error("Export failed:", err);
     } finally {
+      isGenerating.current = false;
       setExportLoading(false);
     }
   }, [fetchExportSummary, exportSummary]);
@@ -358,18 +367,19 @@ export function App() {
                 <button
                   className="topbar__session-btn primary"
                   onClick={() => {
-                    if (exportSummary) {
-                      // Summary already exists and modal is visible
-                      // Button shows "View Summary" — nothing needed
+                    if (exportLoading) {
                       return;
                     }
-                    // No summary yet — generate it
-                    void handleExport();
+                    if (exportSummary) {
+                      setShowExportView(true);
+                    } else {
+                      void handleExport();
+                    }
                   }}
-                  disabled={exportLoading}
-                  title={exportSummary ? "Show generated summary" : "Generate session summary"}
+                  disabled={exportLoading || loading}
+                  title={exportSummary ? "View generated summary" : "Generate session summary"}
                 >
-                  {exportLoading ? "Generating..." : exportSummary ? "Show Summary" : "Export Summary"}
+                  {exportLoading ? "Generating..." : exportSummary ? "View Summary" : "Export Summary"}
                 </button>
               </div>
             ) : (
@@ -496,13 +506,15 @@ export function App() {
         />
       ) : null}
 
-      {exportSummary ? (
+      {showExportView && exportSummary ? (
         <ExportModal
           summary={exportSummary}
-          onClose={() => setExportSummary(null)}
+          onClose={() => setShowExportView(false)}
           onRegenerate={() => {
-            hasGenerated.current = false;
+            isGenerating.current = false;
+            setExportLoading(false);
             setExportSummary(null);
+            setShowExportView(false);
           }}
         />
       ) : null}
