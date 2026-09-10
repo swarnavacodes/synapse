@@ -359,10 +359,11 @@ export function App() {
                   className="topbar__session-btn primary"
                   onClick={() => {
                     if (exportSummary) {
-                      // Already generated — just reopen/re-show modal
-                      // The modal is shown because exportSummary is set
+                      // Summary already exists and modal is visible
+                      // Button shows "View Summary" — nothing needed
                       return;
                     }
+                    // No summary yet — generate it
                     void handleExport();
                   }}
                   disabled={exportLoading}
